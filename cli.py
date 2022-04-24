@@ -25,6 +25,10 @@ class CLI(Runable):
 			self._stopCommand,
 			"Stop the app" )
 
+		self._addCommand("list",
+			self._listCommand,
+			"List all limited apps" )
+
 	def dispatchCommand(self, clientInput):
 		command, *args = clientInput.split(" ")
 
@@ -106,3 +110,7 @@ class CLI(Runable):
 	def _stopCommand(self, args):
 		self.response("Stopping the app..")
 		self.core.stop()
+
+	def _listCommand(self, args):
+		for limit in self.core.limiter.limits:
+			self.response(f"{limit.processFilename} {limit.getTimeLeft()} - {limit.timeAllowed}")

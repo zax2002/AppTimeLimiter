@@ -1,7 +1,7 @@
-from core import TimeLimiter
+from core import Core
 
 def main():
-	app = TimeLimiter()
+	app = Core()
 	app.start()
 
 if __name__ == "__main__":

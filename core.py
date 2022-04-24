@@ -1,22 +1,24 @@
-import re
 import os
 import sys
 import json5
 
 from cli import CLI
 from runable import Runable
+from limiter import Limiter
 from telnetServer import TelnetServer
 from windowsMonitor import WindowsMonitor
 
-class TimeLimiter(Runable):
+class Core(Runable):
 	def __init__(self):
 		super().__init__()
 
 		self.cli = CLI(self, print, input)
 		self.telnetServer = TelnetServer(self)
-		self.monitor = WindowsMonitor(self)
 
-		if not self.reloadLimits():
+		self.limiter = Limiter(self)
+		self.monitor = WindowsMonitor(self, self.limiter.onWindowFocus)
+
+		if not self.limiter.reloadLimits():
 			sys.exit(0)
 
 		if not self.reloadConfig():
@@ -26,6 +28,9 @@ class TimeLimiter(Runable):
 		if self.config["telnet"]["enabled"]:
 			self.telnetServer.setAddress(self.config["telnet"]["host"], self.config["telnet"]["port"])
 			self.telnetServer.start()
+
+		self.limiter.start()
+		self.monitor.start()
 
 		try:
 			self.cli.start()
@@ -43,9 +48,12 @@ class TimeLimiter(Runable):
 			except:
 				pass
 
+		self.monitor.stop()
+		self.limiter.stop()
+
 		print("bye")
 
-		sys.exit(0)
+		#sys.exit(0)
 		os._exit(0)
 
 	# ----------------------------------------------------------------------------------------------
@@ -69,18 +77,6 @@ class TimeLimiter(Runable):
 			print(f"Failed to reload config: {e}")
 			return False
 
-	def reloadLimits(self):
-		try:
-			limits = json5.load(open("limits.json"))
-
-			self.limits = [[limit["processName"], re.compile(limit["titleMask"])] for limit in limits]
-
-			return True
-
-		except Exception as e:
-			print(f"Failed to reload limits: {e}")
-			return False
-
 	def reload(self):
 		self.reloadConfig()
-		self.reloadLimits()
+		self.limiter.reloadLimits()

@@ -2,9 +2,17 @@
 	{
 		"name": "Minecraft",
 
-		"processName": "javaw.exe",
-		"titleMask": "^Minecraft.*$",
+		"processFilename": "javaw.exe",
+		"titleRegex": "^Minecraft.*$",
 
-		"time": "3h"
+		"time": "2h"
 	}
+	// {
+	// 	"name": "Telegram",
+
+	// 	"processFilename": "Telegram.exe",
+	// 	"titleRegex": "^Telegram.*$",
+
+	// 	"time": "20s"
+	// }
 ]
