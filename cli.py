@@ -113,4 +113,4 @@ class CLI(Runable):
 
 	def _listCommand(self, args):
 		for limit in self.core.limiter.limits:
-			self.response(f"{limit.processFilename} {limit.getTimeLeft()} - {limit.timeAllowed}")
+			self.response(f"{limit.processFilename} {limit.getTimeLeft()} / {limit.timeAllowed}")
