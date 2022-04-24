@@ -1,3 +1,4 @@
+import time
 import socket
 import threading
 
@@ -30,7 +31,9 @@ class TelnetServer(Runable):
 				message = "Program is already running or telnet port is already in usage"
 				self.core.notification(message)
 				print(message)
-				
+
+				time.sleep(2)
+
 				self.core.stop()
 				return
 
