@@ -23,7 +23,20 @@ class TelnetServer(Runable):
 
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-		self.socket.bind((self.host, self.port))
+		try:
+			self.socket.bind((self.host, self.port))
+		except WindowsError as e:
+			if e.winerror == 10048:
+				message = "Program is already running or telnet port is already in usage"
+				self.core.notification(message)
+				print(message)
+				
+				self.core.stop()
+				return
+
+			else:
+				raise e
+
 		self.socket.listen(10)
 
 		threading.Thread(target=self._serverThread).start()

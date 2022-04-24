@@ -1,6 +1,7 @@
 import os
 import sys
 import json5
+import win10toast
 
 from cli import CLI
 from runable import Runable
@@ -11,6 +12,8 @@ from windowsMonitor import WindowsMonitor
 class Core(Runable):
 	def __init__(self):
 		super().__init__()
+
+		self.toastNotifier = win10toast.ToastNotifier()
 
 		self.cli = CLI(self, print, input)
 		self.telnetServer = TelnetServer(self)
@@ -57,6 +60,9 @@ class Core(Runable):
 		os._exit(0)
 
 	# ----------------------------------------------------------------------------------------------
+
+	def notification(self, text, duration=5, title="TimeLimiter"):
+		self.toastNotifier.show_toast(title, text, duration=duration, threaded=True)
 
 	def reloadConfig(self):
 		print("Loading config..")
