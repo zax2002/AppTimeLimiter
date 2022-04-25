@@ -3,9 +3,9 @@ import socket
 import threading
 
 from cli import CLI
-from runable import Runable
+from runnable import Runnable
 
-class TelnetServer(Runable):
+class TelnetServer(Runnable):
 	def __init__(self, core):
 		super().__init__()
 

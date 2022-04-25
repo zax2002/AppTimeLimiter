@@ -4,12 +4,13 @@ import json5
 import win10toast
 
 from cli import CLI
-from runable import Runable
+from runnable import Runnable
 from limiter import Limiter
 from telnetServer import TelnetServer
 from windowsMonitor import WindowsMonitor
+from timeTravelDetector import TimeTravelDetector
 
-class Core(Runable):
+class Core(Runnable):
 	def __init__(self):
 		super().__init__()
 
@@ -20,6 +21,8 @@ class Core(Runable):
 
 		self.limiter = Limiter(self)
 		self.monitor = WindowsMonitor(self, self.limiter.onWindowFocus)
+
+		self.timeTravelDetector = TimeTravelDetector(self._onTimeTravel)
 
 		if not self.limiter.reloadLimits():
 			sys.exit(0)
@@ -35,6 +38,8 @@ class Core(Runable):
 		self.limiter.start()
 		self.monitor.start()
 
+		self.timeTravelDetector.start()
+
 		try:
 			self.cli.start()
 		except KeyboardInterrupt:
@@ -44,6 +49,7 @@ class Core(Runable):
 
 	def _onStop(self):
 		self.cli.stop()
+		self.timeTravelDetector.stop()
 
 		if self.telnetServer.running:
 			try:
@@ -60,6 +66,10 @@ class Core(Runable):
 		os._exit(0)
 
 	# ----------------------------------------------------------------------------------------------
+
+	def _onTimeTravel(self, difference):
+		print(f"Time travel detected ({difference} seconds)")
+		self.limiter.onTimeTravel()
 
 	def notification(self, text, duration=5, title="TimeLimiter"):
 		self.toastNotifier.show_toast(title, text, duration=duration, threaded=True)

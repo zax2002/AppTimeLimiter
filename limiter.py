@@ -3,10 +3,10 @@ import json5
 import datetime
 import threading
 
-from runable import Runable
+from runnable import Runnable
 from limitedApp import LimitedApp
 
-class Limiter(Runable):
+class Limiter(Runnable):
 	def __init__(self, core):
 		super().__init__()
 
@@ -14,39 +14,56 @@ class Limiter(Runable):
 
 		self.focusedApp = None
 		self.resetTimer = None
+		self.timerStartDate = None
 
 	def _onStart(self):
-		self._setResetTimer()
-
+		self._setTimer()
 
 	def _onStop(self):
 		print("Stopping limiter..")
 
-		self._cancelResetTimer()
+		self._cancelTimer()
 
 		for limit in self.limits:
 			limit.stop()
 
-	def _cancelResetTimer(self):
+	# ----------------------------------------------------------------------------------------------
+
+	def _setTimer(self):
+		self._cancelTimer()
+		secondsToNextDay = self._getSecondsToNextDay()
+		self.resetTimer = threading.Timer(secondsToNextDay, self._resetTime)
+		self.resetTimer.start()
+		self.timerStartDate = datetime.datetime.now()
+
+	def _cancelTimer(self):
 		try:
 			self.resetTimer.cancel()
 		except:
 			pass
 
-	def _setResetTimer(self):
-		self._cancelResetTimer()
-		secondsToNextDay = self._getSecondsToNextDay()
-		self.resetTimer = threading.Timer(secondsToNextDay, self._resetTime)
-		self.resetTimer.start()
-
-
 	def _resetTime(self):
+		self._cancelTimer()
+
 		for limit in self.limits:
 			limit.resetTime()
 
-		time.sleep(60)
+		print("Limits has been reset due to the next day")
 
-		self._setResetTimer()
+		time.sleep(1)
+
+		self._setTimer()
+
+	def onTimeTravel(self):
+		for limit in self.limits:
+			limit.restartTimers()
+
+		if self.timerStartDate is not None and datetime.datetime.now().day != self.timerStartDate.day:
+			self._resetTime()
+
+		else:
+			self._cancelTimer()
+			self._setTimer()
 
 	def reloadLimits(self):
 		try:

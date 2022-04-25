@@ -5,9 +5,9 @@ import win32con
 import threading
 import ctypes.wintypes
 
-from runable import Runable
+from runnable import Runnable
 
-class WindowsMonitor(Runable):
+class WindowsMonitor(Runnable):
 	user32 = ctypes.windll.user32
 	ole32 = ctypes.windll.ole32
 	kernel32 = ctypes.windll.kernel32

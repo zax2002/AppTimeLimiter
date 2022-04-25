@@ -4,9 +4,9 @@ import time
 import threading
 import win10toast
 
-from runable import Runable
+from runnable import Runnable
 
-class LimitedApp(Runable):
+class LimitedApp(Runnable):
 	def __init__(self, processFilename, regex, timeAllowed):
 		super().__init__()
 
@@ -93,14 +93,18 @@ class LimitedApp(Runable):
 		timeLeft = self.timeAllowed - self.getTimeUsed()
 		return timeLeft if timeLeft >= 0 else 0
 
-	def resetTime(self):
-		self.timeUsed = 0
-		self.focusTime = None
+	def restartTimers(self):
 		self._cancelTimers()
 
 		if self.focused:
 			self.focused = False
 			self.onFocus()
+
+	def resetTime(self):
+		self.timeUsed = 0
+		self.focusTime = None
+		
+		self.restartTimers()
 
 	def _cancelTimers(self):
 		for timer in self.timers:

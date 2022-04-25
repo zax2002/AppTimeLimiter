@@ -1,7 +1,7 @@
 import traceback
-from runable import Runable
+from runnable import Runnable
 
-class CLI(Runable):
+class CLI(Runnable):
 	def __init__(self, core, responseHandler, inputProvider):
 		super().__init__()
 

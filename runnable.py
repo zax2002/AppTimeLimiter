@@ -1,4 +1,4 @@
-class Runable:
+class Runnable:
 	def __init__(self):
 		self.running = False
 
