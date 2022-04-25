@@ -32,6 +32,8 @@ class CLI(Runnable):
 	def dispatchCommand(self, clientInput):
 		command, *args = clientInput.split(" ")
 
+		command = command.lstrip("/")
+
 		self._onCommand(command, args)
 
 	def _onStart(self):
