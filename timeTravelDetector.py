@@ -1,5 +1,5 @@
-import threading
 import time
+import threading
 
 from runnable import Runnable
 

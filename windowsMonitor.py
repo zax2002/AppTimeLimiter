@@ -63,7 +63,7 @@ class WindowsMonitor(Runnable):
 		return cls.user32.SetWinEventHook(eventType, eventType, 0, winEventProc, 0, 0, win32con.WINEVENT_OUTOFCONTEXT)
 
 	@classmethod
-	def getProcessId(cls, dwEventThread, hwnd):
+	def _getProcessId(cls, dwEventThread, hwnd):
 		hThread = cls.kernel32.OpenThread(cls.threadFlag, 0, dwEventThread)
 
 		if hThread:
@@ -102,7 +102,7 @@ class WindowsMonitor(Runnable):
 		return processId
 
 	@classmethod
-	def getProcessFilename(cls, processId):
+	def _getProcessFilename(cls, processId):
 		hProcess = cls.kernel32.OpenProcess(cls.processFlag, 0, processId)
 		if not hProcess:
 			print("OpenProcess(%s) failed: %s" % (processId, ctypes.WinError()))
@@ -122,8 +122,8 @@ class WindowsMonitor(Runnable):
 		title = ctypes.create_unicode_buffer(length + 1)
 		self.user32.GetWindowTextW(hwnd, title, length + 1)
 
-		processId = self.getProcessId(dwEventThread, hwnd)
-		processPath = self.getProcessFilename(processId)
+		processId = self._getProcessId(dwEventThread, hwnd)
+		processPath = self._getProcessFilename(processId)
 		processFilename = os.path.basename(processPath)
 
 		self.focuCallback(processFilename, title.value)

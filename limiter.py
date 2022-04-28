@@ -3,6 +3,7 @@ import json5
 import datetime
 import threading
 
+from utils import Utils
 from runnable import Runnable
 from limitedApp import LimitedApp
 
@@ -31,7 +32,7 @@ class Limiter(Runnable):
 
 	def _setTimer(self):
 		self._cancelTimer()
-		secondsToNextDay = self._getSecondsToNextDay()
+		secondsToNextDay = Utils.secondsToNextDay()
 		self.resetTimer = threading.Timer(secondsToNextDay, self._resetTime)
 		self.resetTimer.start()
 		self.timerStartDate = datetime.datetime.now()
@@ -95,10 +96,3 @@ class Limiter(Runnable):
 		if not self.focusedApp is None:
 			self.focusedApp.onBlur()
 			self.focusedApp = None
-
-	@classmethod
-	def _getSecondsToNextDay(cls):
-		currentDate = datetime.datetime.now()
-		nextDayTime = currentDate.replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
-		# nextDayTime = currentDate + datetime.timedelta(seconds=30)
-		return (nextDayTime - currentDate).total_seconds()

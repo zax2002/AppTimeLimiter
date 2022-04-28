@@ -1,4 +1,8 @@
 import traceback
+
+from datetime import timedelta
+
+from utils import Utils
 from runnable import Runnable
 
 class CLI(Runnable):
@@ -25,9 +29,13 @@ class CLI(Runnable):
 			self._stopCommand,
 			"Stop the app" )
 
-		self._addCommand("list",
+		self._addCommand(("list", "time"),
 			self._listCommand,
 			"List all limited apps" )
+
+		self._addCommand("set",
+			self._setTimeCommand,
+			"Set remaining/allowed time manually" )
 
 	def dispatchCommand(self, clientInput):
 		command, *args = clientInput.split(" ")
@@ -56,7 +64,7 @@ class CLI(Runnable):
 				self.commandAliases[command][1](args)
 			except Exception as e:
 				self.response(f"CLI error:")
-				self.response(traceback.format_exception(e))
+				self.response("".join(traceback.format_exception(e)))
 
 		elif command == "":
 			return
@@ -78,7 +86,7 @@ class CLI(Runnable):
 		for alias in aliases:
 			self.commandAliases[alias] = command
 
-	# ----------------------------------------------------------------------------------------------
+	# Commands -------------------------------------------------------------------------------------
 
 	def _helpCommand(self, args):
 		response = "\nCommands:\n"
@@ -114,5 +122,39 @@ class CLI(Runnable):
 		self.core.stop()
 
 	def _listCommand(self, args):
-		for limit in self.core.limiter.limits:
-			self.response(f"{limit.processFilename} {limit.getTimeLeft()} / {limit.timeAllowed}")
+		for i, limit in enumerate(self.core.limiter.limits):
+			timeLeft = timedelta(seconds=round(limit.getTimeLeft()))
+			timeAllowed = timedelta(seconds=round(limit.timeAllowed))
+
+			barsCount = round(timeLeft/timeAllowed * 50)
+			progressBar = "[" + "▄"*barsCount + "_"*(50-barsCount) + "]"
+
+			self.response(f"[{i}] {limit.processFilename}\n  {timeLeft} {progressBar} {timeAllowed}\n")
+
+	def _setTimeCommand(self, args):
+		if len(args) < 3 or not args[0] in ("left", "allowed"):
+			self.response('Usage: set <"left"|"allowed"> <limitId> <time>')
+			return
+
+		timeType, limitIndex, timeSeconds = args[:3]
+
+		try:
+			limitIndex = int(limitIndex)
+			limit = self.core.limiter.limits[limitIndex]
+
+		except (ValueError, IndexError):
+			self.response("Invalid limitId")
+			return
+
+		timeSeconds = Utils.parseTime(timeSeconds)
+		if timeSeconds is None:
+			self.response("Invalid time")
+			return
+
+		if timeType == "left":
+			limit.setTimeLeft(timeSeconds)
+			self.response(f"Remaining time has been set to {timedelta(seconds=timeSeconds)}")
+
+		else:
+			limit.setTimeAllowed(timeSeconds)
+			self.response(f"Time limit has been set to {timedelta(seconds=timeSeconds)}")

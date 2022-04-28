@@ -4,6 +4,7 @@ import time
 import threading
 import win10toast
 
+from utils import Utils
 from runnable import Runnable
 
 class LimitedApp(Runnable):
@@ -14,7 +15,7 @@ class LimitedApp(Runnable):
 
 		self.processFilename = processFilename
 		self.regex = re.compile(regex)
-		self.timeAllowed = self._parseTime(timeAllowed)
+		self.timeAllowed = Utils.parseTime(timeAllowed)
 
 		self.focused = False
 		self.focusTime = None
@@ -80,6 +81,8 @@ class LimitedApp(Runnable):
 
 		self.timeUsed += time.time() - self.focusTime
 
+	# Time -----------------------------------------------------------------------------------------
+
 	def getTimeUsed(self):
 		if not self.focused or self.focusTime is None:
 			return self.timeUsed
@@ -89,9 +92,25 @@ class LimitedApp(Runnable):
 	def isExpired(self):
 		return self.getTimeUsed() >= self.timeAllowed
 
+	def resetTime(self):
+		self.timeUsed = 0
+		self.focusTime = None
+		
+		self.restartTimers()
+
 	def getTimeLeft(self):
 		timeLeft = self.timeAllowed - self.getTimeUsed()
 		return timeLeft if timeLeft >= 0 else 0
+
+	def setTimeLeft(self, timeSeconds):
+		self.timeUsed = self.timeAllowed - timeSeconds
+		self.restartTimers()
+
+	def setTimeAllowed(self, timeSeconds):
+		self.timeAllowed = timeSeconds
+		self.restartTimers()
+
+	# Timers ---------------------------------------------------------------------------------------
 
 	def restartTimers(self):
 		self._cancelTimers()
@@ -99,12 +118,6 @@ class LimitedApp(Runnable):
 		if self.focused:
 			self.focused = False
 			self.onFocus()
-
-	def resetTime(self):
-		self.timeUsed = 0
-		self.focusTime = None
-		
-		self.restartTimers()
 
 	def _cancelTimers(self):
 		for timer in self.timers:
@@ -124,13 +137,3 @@ class LimitedApp(Runnable):
 	def _kill(self):
 		self._notification("Sorry")
 		os.system(f"taskkill /f /im {self.processFilename}")
-
-
-	@classmethod
-	def _parseTime(cls, time):
-		if time[-1] == "s":
-			return int(time[:-1])
-		elif time[-1] == "m":
-			return int(time[:-1])*60
-		elif time[-1] == "h":
-			return int(time[:-1])*3600
